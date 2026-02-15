@@ -184,6 +184,10 @@ function PaywallModal({ onClose, onSubscribe, loading }) {
 
 // ─── Number input helper ──────────────────────────────────────────────────────
 function NumInput({ label, value, onChange, min, max, step, unit, hint }) {
+  const [raw, setRaw] = useState(String(value));
+
+  useEffect(() => { setRaw(String(value)); }, [value]);
+
   const C = {
     row: {marginBottom:'12px'},
     lbl: {display:'flex',justifyContent:'space-between',fontSize:'11px',
@@ -196,10 +200,25 @@ function NumInput({ label, value, onChange, min, max, step, unit, hint }) {
   return (
     <div style={C.row}>
       <div style={C.lbl}><span>{label}</span><span style={{color:'#eac870'}}>{value} {unit}</span></div>
-      <input type="number" style={C.inp} value={raw} min={min} max={max} step={step}
-       
-        onFocus={e=>e.target.style.borderColor='#c8904a'}
+      <input
+        type="number"
+        style={C.inp}
+        value={raw}
+        min={min}
+        max={max}
+        step={step}
+        onChange={e => setRaw(e.target.value)}
         onBlur={e => {
+          e.target.style.borderColor = 'rgba(200,150,55,0.3)';
+          const n = Number(e.target.value);
+          if (!isNaN(n) && e.target.value !== '' && n >= min && n <= max) {
+            onChange(n);
+          } else {
+            setRaw(String(value));
+          }
+        }}
+        onFocus={e => e.target.style.borderColor = '#c8904a'}
+      />
       {hint && <div style={C.hint}>{hint}</div>}
     </div>
   );
@@ -453,7 +472,6 @@ export default function Home() {
               <div style={C.divider}/>
               <div style={C.ttl}>Download Sections</div>
 
-              {/* Section grid buttons */}
               <div style={{...C.sectionGrid, gridTemplateColumns:`repeat(${sectionsX}, 1fr)`}}>
                 {Array.from({length:sectionsY}).map((_,row)=>
                   Array.from({length:sectionsX}).map((_,col)=>{
